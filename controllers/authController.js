@@ -1,20 +1,28 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { sendRegistrationEmail } = require('../utils/mailer'); // <-- import mailer
 
 exports.register = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, user_type } = req.body;
 
   try {
     let user = await User.findOne({ email });
     if (user) return res.status(400).json({ msg: 'User already exists' });
 
-    user = new User({ name, email, password });
+    user = new User({ name, email, password, user_type });
+    if (!user_type) {
+      user.user_type = '1'; // Default user type
+    }
 
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
 
     await user.save();
+
+    await sendRegistrationEmail(email, name);
+    // Send registration email
+    
     res.status(201).json({ msg: 'User registered successfully' });
   } catch (err) {
     console.error(err.message);
@@ -36,7 +44,11 @@ exports.login = async (req, res) => {
 
     jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }, (err, token) => {
       if (err) throw err;
-      res.json({ token });
+      // Include user_type in the response
+      res.json({
+        token,
+        user_type: user.user_type === 1 ? 'teacher' : user.user_type === 2 ? 'student' : 'unknown'
+      });
     });
 
   } catch (err) {
