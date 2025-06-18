@@ -96,3 +96,22 @@ exports.deleteUser = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
+exports.allUser = async (req, res) => {
+  try {
+    const users = await User.find();
+    res.status(200).json(users);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+exports.userInfo = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const users = await User.findById(userId);
+    res.status(200).json(users.email ? users : { msg: 'User not found' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
