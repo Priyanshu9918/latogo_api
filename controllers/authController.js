@@ -2,6 +2,7 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { sendRegistrationEmail } = require('../utils/mailer'); // <-- import mailer
+const req = require('express/lib/request');
 
 exports.register = async (req, res) => {
   const { name, email, password, user_type } = req.body;
@@ -115,3 +116,46 @@ exports.userInfo = async (req, res) => {
     res.status(500).send('Server Error');
   }
 };
+
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user) return res.status(404).json({ message: 'User not found' });
+
+  const token = crypto.randomBytes(32).toString('hex');
+  user.resetToken = token;
+  user.resetTokenExpire = Date.now() + 3600000; // 1 hour
+  await user.save();
+
+  const resetLink = `${process.env.BASE_URL}/reset-password/${token}`;
+
+  await transporter.sendMail({
+    to: user.email,
+    subject: "Password Reset",
+    html: `<p>Click <a href="${resetLink}">here</a> to reset your password</p>`
+  });
+
+  res.json({ message: 'Password reset link sent to email' });
+
+}
+
+exports.resetPassword = async(req,res) => {
+  const { token } = req.params;
+  const { newPassword } = req.body;
+
+  const user = await User.findOne({
+    resetToken: token,
+    resetTokenExpire: { $gt: Date.now() }
+  });
+
+  if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  user.password = hashedPassword;
+  user.resetToken = undefined;
+  user.resetTokenExpire = undefined;
+
+  await user.save();
+  res.json({ message: 'Password has been reset successfully' });
+}
