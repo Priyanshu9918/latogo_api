@@ -20,6 +20,12 @@ const UserSchema = new mongoose.Schema({
     enum: [1, 2, 3], // 1 for teacher, 2 for student, 3 for admin
     default: 1 // Default to teacher
   },
+  resetToken: {
+    type: String
+  },
+  resetTokenExpire: {
+    type: Date
+  },
   createdAt: {
     type: Date,
     default: Date.now

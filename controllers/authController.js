@@ -3,6 +3,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { sendRegistrationEmail } = require('../utils/mailer'); // <-- import mailer
 const req = require('express/lib/request');
+const crypto = require('crypto'); 
+const nodemailer = require('nodemailer');
 
 exports.register = async (req, res) => {
   const { name, email, password, user_type } = req.body;
@@ -21,7 +23,7 @@ exports.register = async (req, res) => {
 
     await user.save();
 
-    await sendRegistrationEmail(email, name);
+    // await sendRegistrationEmail(email, name);
     // Send registration email
     
     res.status(201).json({ msg: 'User registered successfully' });
@@ -128,7 +130,16 @@ exports.forgotPassword = async (req, res) => {
   user.resetTokenExpire = Date.now() + 3600000; // 1 hour
   await user.save();
 
-  const resetLink = `${process.env.BASE_URL}/reset-password/${token}`;
+  const transporter = nodemailer.createTransport({
+    service: 'gmail', // or any other email service like 'hotmail', 'yahoo'
+    auth: {
+      user: process.env.MAIL_USERNAME, // e.g., 'youremail@gmail.com'
+      pass: process.env.MAIL_PASSWORD  // Gmail app password (not regular password)
+    }
+  });
+
+
+  const resetLink = `${process.env.BASE_URL}/reset_password/${token}`;
 
   await transporter.sendMail({
     to: user.email,
@@ -136,7 +147,7 @@ exports.forgotPassword = async (req, res) => {
     html: `<p>Click <a href="${resetLink}">here</a> to reset your password</p>`
   });
 
-  res.json({ message: 'Password reset link sent to email' });
+  res.json({ message: 'Password reset link sent to email',token:token,baseURL:resetLink });
 
 }
 
@@ -157,5 +168,5 @@ exports.resetPassword = async(req,res) => {
   user.resetTokenExpire = undefined;
 
   await user.save();
-  res.json({ message: 'Password has been reset successfully' });
+  res.json({ message: `Password has been reset successfully and your password is: ${newPassword}` });
 }

@@ -9,7 +9,7 @@ router.put('/update/:id', auth,updateUser);
 router.delete('/delete/:id', auth,deleteUser);
 router.get('/all_user', allUser);
 router.get('/user_info/:id', auth,userInfo);
-router.get('/forgot_password', auth,forgotPassword);
-router.get('/reset_password/:token', auth,resetPassword);
+router.post('/forgot_password', forgotPassword);
+router.post('/reset_password/:token',resetPassword);
 
 module.exports = router;
