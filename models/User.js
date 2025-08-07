@@ -17,7 +17,7 @@ const UserSchema = new mongoose.Schema({
   user_type: {
     type: Number,
     required: true,
-    enum: [1, 2, 3], // 1 for teacher, 2 for student, 3 for admin
+    enum: [0, 1, 2], // 1 for teacher, 2 for student, 0 for admin
     default: 1 // Default to teacher
   },
   resetToken: {
