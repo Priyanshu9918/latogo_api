@@ -1,19 +1,19 @@
 const express = require('express');
 const Router = express.Router();
 const auth = require('../middleware/auth');
-const { createLevel, updateLevel, deleteLevel,getAllCourses,getCourseById, } = require('../controllers/levelController');
+const { createCourse, updateCourse, deleteCourse,getAllCourses,getCourseById } = require('../controllers/courseController');
 
 // Route to create a new level
-Router.post('/create', auth, createLevel);
+Router.post('/create', auth, createCourse);
 
 // Route to update an existing level
-Router.put('/update/:id', auth, updateLevel);   
+Router.put('/update/:id', auth, updateCourse);   
 
 // Route to delete a level
-Router.delete('/delete/:id', auth, deleteLevel);
+Router.delete('/delete/:id', auth, deleteCourse);
 
 // Route to get all levels
-Router.get('/', auth, getAllLevels);
+Router.get('/', auth, getAllCourses);
 
 // Route to get a level by ID
 Router.get('/:id', auth, getCourseById);

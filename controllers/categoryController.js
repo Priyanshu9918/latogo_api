@@ -27,6 +27,20 @@ exports.createCategory = async (req, res) => {
   }
 };
 
+exports.getCategoryInfo = async (req, res) => {
+  try {
+    const catId = req.params.id;
+    const category = await Category.findById(catId);
+    
+    if (!category) return res.status(400).json({ msg: 'category not found' });
+
+    res.status(200).json(category);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
 exports.updateCategory = async (req, res) => {
   const { name, description } = req.body;
   const categoryId = req.params.id;

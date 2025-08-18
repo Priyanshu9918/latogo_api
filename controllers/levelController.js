@@ -28,6 +28,21 @@ exports.createLevel = async (req, res) => {
   }
 };
 
+exports.getLevelById = async (req,res) => {
+  const levelId = req.params.id;
+
+  try {
+    const check = await Level.findById({levelId});
+    if(!check){
+      res.status(404).json('data not found');
+    }
+    res.status(200).json(check);
+
+  }catch(excepton){
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+}
 exports.updateLevel = async (req, res) => {
   const { name, description } = req.body;
   const levelId = req.params.id;
