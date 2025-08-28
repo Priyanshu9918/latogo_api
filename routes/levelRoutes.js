@@ -10,7 +10,7 @@ Router.post('/create', auth, createLevel);
 // Route to update an existing level
 Router.put('/update/:id', auth, updateLevel);
 
-Router.delete('/edit/:id', auth, getLevelById);
+Router.get('/edit/:id', auth, getLevelById);
 
 // Route to delete a level
 Router.delete('/delete/:id', auth, deleteLevel);

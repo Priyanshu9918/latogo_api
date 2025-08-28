@@ -2,10 +2,10 @@ const Student = require('../models/Student');
 const bcrypt = require('bcryptjs');
 
 exports.createStudent = async (req, res) => {
-  const { name, email, password, user_typen, course } = req.body;
+  const { name, email, password, course,level } = req.body;
 
-  try {   
-    if (!name || !email || !password || !user_type) {
+  // try {   
+    if (!name || !email || !password) {
       return res.status(400).json({ msg: 'All fields are required' });
     }
 
@@ -15,37 +15,36 @@ exports.createStudent = async (req, res) => {
     if(password.length < 6) {
       return res.status(400).json({ msg: 'Password must be at least 6 characters long' });
     }
-    if(password){
-        const bcrypt = require('bcryptjs');
-        const salt = await bcrypt.genSalt(10);
-        password = await bcrypt.hash(password, salt);   
-    }
+
     const existingStudent = await Student.findOne({ email });
     if (existingStudent) {
       return res.status(400).json({ msg: 'Email already exists' });
     }
+
+    // const salt = await bcrypt.genSalt(10);
+    // password = await bcrypt.hash(password, salt);
 
     // Create new student
     const newStudent = new Student({
       name,
       email,
       password,
-      user_type: user_type || 2, // Default to student if not provided
-      course: course || []
+      course: course || [],
+      level: level || [],
     });
 
     // Save student to database 
     await newStudent.save();
 
     res.status(201).json({ msg: 'Student created successfully', student: newStudent });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
+  // } catch (err) {
+  //   console.error(err.message);
+  //   res.status(500).send('Server Error');
+  // }
 };
 
 exports.updateStudent = async (req, res) => {
-  const { name, email, password, user_type, course } = req.body;
+  const { name, email, password, course,level } = req.body;
   const studentId = req.params.id;
 
   try {
@@ -59,8 +58,8 @@ exports.updateStudent = async (req, res) => {
       const salt = await bcrypt.genSalt(10);
       student.password = await bcrypt.hash(password, salt);
     }
-    if (user_type) student.user_type = user_type;
     if (course) student.course = course;
+    if (level) student.level = level;
 
     await student.save();
     res.status(201).json({ msg: 'Student updated successfully', student });
@@ -97,7 +96,7 @@ exports.getAllStudents = async (req, res) => {
 exports.getStudentInfo = async (req, res) => {
   try {
     const studentId = req.params.id;
-    const student = await Student.findById(studentId).populate('course');
+    const student = await Student.findById(studentId);
     
     if (!student) return res.status(400).json({ msg: 'Student not found' });
 

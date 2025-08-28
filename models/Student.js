@@ -24,6 +24,10 @@ const CourseSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Course'
   }],
+  level: [{
+    type: Schema.Types.ObjectId,
+    ref: 'level'
+  }],
   created_at: {
     type: Date,
     default: Date.now
