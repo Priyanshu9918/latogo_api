@@ -24,6 +24,12 @@ exports.createStudent = async (req, res) => {
     // const salt = await bcrypt.genSalt(10);
     // password = await bcrypt.hash(password, salt);
 
+    const io = req.app.get("io");
+    io.emit("newNotification", {
+      message: `New student registered: ${name}`,
+      time: new Date()
+    });
+
     // Create new student
     const newStudent = new Student({
       name,
