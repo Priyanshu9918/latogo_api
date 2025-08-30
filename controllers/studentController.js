@@ -1,29 +1,23 @@
 const Student = require('../models/Student');
 const bcrypt = require('bcryptjs');
-
 exports.createStudent = async (req, res) => {
   const { name, email, password, course,level } = req.body;
-
   // try {   
     if (!name || !email || !password) {
       return res.status(400).json({ msg: 'All fields are required' });
     }
-
     if( name.length < 3 || password.length < 6) {
       return res.status(400).json({ msg: 'Name must be at least 3 characters and password at least 6 characters long' });
     }
     if(password.length < 6) {
       return res.status(400).json({ msg: 'Password must be at least 6 characters long' });
     }
-
     const existingStudent = await Student.findOne({ email });
     if (existingStudent) {
       return res.status(400).json({ msg: 'Email already exists' });
     }
-
     // const salt = await bcrypt.genSalt(10);
     // password = await bcrypt.hash(password, salt);
-
     // Create new student
     const newStudent = new Student({
       name,
@@ -32,17 +26,14 @@ exports.createStudent = async (req, res) => {
       course: course || [],
       level: level || [],
     });
-
     // Save student to database 
     await newStudent.save();
-
     res.status(201).json({ msg: 'Student created successfully', student: newStudent });
   // } catch (err) {
   //   console.error(err.message);
   //   res.status(500).send('Server Error');
   // }
 };
-
 exports.updateStudent = async (req, res) => {
   const { name, email, password, course,level } = req.body;
   const studentId = req.params.id;
