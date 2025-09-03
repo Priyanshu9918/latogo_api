@@ -21,6 +21,10 @@ const CourseSchema = new Schema({
         ref: 'Level',
         required: true
     },
+    amount: {
+        type: String,
+        required: true
+    },
     created_at: {
         type: Date,
         default: Date.now
