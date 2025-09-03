@@ -1,5 +1,7 @@
 const Student = require('../models/Student');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
 exports.createStudent = async (req, res) => {
   const { name, email, password, course,level } = req.body;
   // try {   
@@ -18,6 +20,13 @@ exports.createStudent = async (req, res) => {
     }
     // const salt = await bcrypt.genSalt(10);
     // password = await bcrypt.hash(password, salt);
+
+    const io = req.app.get("io");
+    io.emit("newNotification", {
+      message: `New student registered: ${name}`,
+      time: new Date()
+    });
+
     // Create new student
     const newStudent = new Student({
       name,
@@ -34,6 +43,51 @@ exports.createStudent = async (req, res) => {
   //   res.status(500).send('Server Error');
   // }
 };
+
+exports.studentLogin = async (req, res) => {
+  const { email, password } = req.body;
+ 
+  if (!email || !password) {
+    return res.status(400).json({ msg: 'Email and password are required' });
+  }
+ 
+  try {
+    const student = await Student.findOne({ email });
+    if (!student) {
+      return res.status(400).json({ msg: 'Invalid credentials' });
+    }
+ 
+    const isMatch = await bcrypt.compare(password, student.password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: 'Invalid credentials' });
+    }
+ 
+    const payload = { student: { id: student.id } };
+ 
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' },
+      (err, token) => {
+        if (err) throw err;
+ 
+        res.json({
+          token,
+          user_type:
+            student.user_type === 1
+              ? 'teacher'
+              : student.user_type === 2
+              ? 'student'
+              : 'unknown',
+        });
+      }
+    );
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
 exports.updateStudent = async (req, res) => {
   const { name, email, password, course,level } = req.body;
   const studentId = req.params.id;

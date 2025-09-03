@@ -1,7 +1,7 @@
 const Course = require('../models/Course');
 
 exports.createCourse = async (req, res) => {
-  const { title, description, category, level } = req.body;
+  const { title, description, category, level, amount } = req.body;
 
   try {
     if (!title || !description || !category || !level) {
@@ -13,6 +13,7 @@ exports.createCourse = async (req, res) => {
       description,
       category,
       level,
+      amount
     });
 
     await newCourse.save();
@@ -24,7 +25,7 @@ exports.createCourse = async (req, res) => {
 };
 
 exports.updateCourse = async (req, res) => {
-  const { title, description, category, level } = req.body;
+  const { title, description, category, level, amount } = req.body;
   const courseId = req.params.id;
 
   try {
@@ -35,6 +36,7 @@ exports.updateCourse = async (req, res) => {
     if (description) course.description = description;
     if (category) course.category = category;
     if (level) course.level = level;
+    if (amount) course.amount = amount;
 
     await course.save();
     res.status(201).json({ msg: 'Course updated successfully', course });
