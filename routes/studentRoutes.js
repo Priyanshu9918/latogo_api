@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const { createStudent, updateStudent, deleteStudent, getAllStudents ,getStudentInfo} = require('../controllers/studentController');
+const { createStudent, updateStudent, deleteStudent, getAllStudents ,getStudentInfo,studentLogin} = require('../controllers/studentController');
 
 // Route to create a new student
-router.post('/create', auth, createStudent);
+router.post('/create', createStudent);
+
+//Route to login a new student
+router.post('/login', studentLogin);
 
 // Route to update an existing student
 router.put('/update/:id', auth, updateStudent);

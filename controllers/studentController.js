@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 exports.createStudent = async (req, res) => {
+  console.log(req);
   const { name, email, password, course,level } = req.body;
   // try {   
     if (!name || !email || !password) {
@@ -18,8 +19,9 @@ exports.createStudent = async (req, res) => {
     if (existingStudent) {
       return res.status(400).json({ msg: 'Email already exists' });
     }
-    // const salt = await bcrypt.genSalt(10);
-    // password = await bcrypt.hash(password, salt);
+
+    const salt = await bcrypt.genSalt(10);
+    const hpassword = await bcrypt.hash(password, salt);
 
     const io = req.app.get("io");
     io.emit("newNotification", {
@@ -31,7 +33,7 @@ exports.createStudent = async (req, res) => {
     const newStudent = new Student({
       name,
       email,
-      password,
+      password : hpassword,
       course: course || [],
       level: level || [],
     });
