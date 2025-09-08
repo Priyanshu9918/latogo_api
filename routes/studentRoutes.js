@@ -4,11 +4,11 @@ const auth = require('../middleware/auth');
 const { authorize } = require('../middleware/authorize');
 const { createStudent, updateStudent, deleteStudent, getAllStudents ,getStudentInfo,studentLogin} = require('../controllers/studentController');
 
-// Student login route
-router.post('/login', studentLogin);
-
 // Route to create a new student
-router.post('/create', auth, createStudent);
+router.post('/create', createStudent);
+
+//Route to login a new student
+router.post('/login', studentLogin);
 
 // Route to update an existing student
 router.put('/update/:id', auth, authorize('2','0'), updateStudent);
