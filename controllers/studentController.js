@@ -1,11 +1,13 @@
 const Student = require('../models/Student');
+const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 exports.createStudent = async (req, res) => {
   console.log(req);
-  const { name, email, password, course,level } = req.body;
-  // try {   
+  const { name, email, password, course,level } = req.body
+
+  try {   
     if (!name || !email || !password) {
       return res.status(400).json({ msg: 'All fields are required' });
     }
@@ -15,35 +17,44 @@ exports.createStudent = async (req, res) => {
     if(password.length < 6) {
       return res.status(400).json({ msg: 'Password must be at least 6 characters long' });
     }
-    const existingStudent = await Student.findOne({ email });
+    const existingStudent = await User.findOne({ email });
     if (existingStudent) {
       return res.status(400).json({ msg: 'Email already exists' });
     }
 
     const salt = await bcrypt.genSalt(10);
-    const hpassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create new user
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      user_type: '2' // 🔹 role defined
+    });
+    await newUser.save();
+    // Create new student
+    const newStudent = new Student({
+      user_id: newUser._id,
+      name,
+      email,
+      password: hashedPassword,
+      course: course || [],
+      level: level || [],
+    });
 
     const io = req.app.get("io");
     io.emit("newNotification", {
       message: `New student registered: ${name}`,
       time: new Date()
     });
-
-    // Create new student
-    const newStudent = new Student({
-      name,
-      email,
-      password : hpassword,
-      course: course || [],
-      level: level || [],
-    });
     // Save student to database 
     await newStudent.save();
     res.status(201).json({ msg: 'Student created successfully', student: newStudent });
-  // } catch (err) {
-  //   console.error(err.message);
-  //   res.status(500).send('Server Error');
-  // }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 };
 
 exports.studentLogin = async (req, res) => {
@@ -54,36 +65,32 @@ exports.studentLogin = async (req, res) => {
   }
  
   try {
-    const student = await Student.findOne({ email });
-    if (!student) {
+    const user = await User.findOne({ email });
+    if (!user) {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
  
-    const isMatch = await bcrypt.compare(password, student.password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
  
-    const payload = { student: { id: student.id } };
- 
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' },
-      (err, token) => {
-        if (err) throw err;
- 
-        res.json({
-          token,
-          user_type:
-            student.user_type === 1
-              ? 'teacher'
-              : student.user_type === 2
-              ? 'student'
-              : 'unknown',
-        });
-      }
-    );
+    const payload = { 
+      user: { 
+        id: user.id,
+        user_type: user.user_type 
+      } 
+    };
+
+    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }, (err, token) => {
+      if (err) throw err;
+      // Include user_type in the response
+      res.json({
+        token,
+        user_type: user.user_type == 1 ? 'teacher' : user.user_type == 2 ? 'student' : 'admin'
+      });
+    });
+
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
