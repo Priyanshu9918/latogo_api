@@ -15,7 +15,7 @@ exports.register = async (req, res) => {
 
     user = new User({ name, email, password, user_type });
     if (!user_type) {
-      user.user_type = '1'; // Default user type
+      user.user_type = '0'; // Default user type
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -43,14 +43,19 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials' });
 
-    const payload = { user: { id: user.id } };
-
+    const payload = { 
+      user: { 
+        id: user.id,
+        user_type: user.user_type 
+      } 
+    };
+    
     jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }, (err, token) => {
       if (err) throw err;
       // Include user_type in the response
       res.json({
         token,
-        user_type: user.user_type === 1 ? 'teacher' : user.user_type === 2 ? 'student' : 'unknown'
+        user_type: user.user_type == 1 ? 'teacher' : user.user_type == 2 ? 'student' : 'admin'
       });
     });
 
